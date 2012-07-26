@@ -52,7 +52,7 @@ function initAddonNameAsync(data) {
  *            boolean argument to force logging
  */
 function printToLog(message, forceEnable) {
-	a = typeof a !== 'undefined' ? a : false;
+	forceEnable = typeof forceEnable !== 'undefined' ? forceEnable : false;
 	if (forceEnable || pref("loggingEnabled")) {
 		Services.console.logStringMessage(ADDON_NAME + ": " + message);
 	}
