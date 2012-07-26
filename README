@@ -1,0 +1,5 @@
+utils.js: provides methods for observing preferences, adding actionListeners to 
+		windows, unloading objects, etc.   
+
+helpers.js: provides mothods for loading/unloading stylesheets based on preferences 
+		and logging messages. 
