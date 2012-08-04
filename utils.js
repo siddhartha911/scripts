@@ -36,40 +36,44 @@
  * ***** END LICENSE BLOCK ***** */
 
 "use strict";
+
 /**
  * Helper that adds event listeners and remembers to remove on unload
  */
 function listen(window, node, event, func, capture) {
-  // Default to use capture
-  if (capture == null)
-    capture = true;
+	// Default to use capture
+	if (capture == null)
+		capture = true;
 
-  node.addEventListener(event, func, capture);
-  function undoListen() {
-    node.removeEventListener(event, func, capture);
-  }
+	node.addEventListener(event, func, capture);
+	function undoListen() {
+		node.removeEventListener(event, func, capture);
+	}
 
-  // Undo the listener on unload and provide a way to undo everything
-  let undoUnload = unload(undoListen, window);
-  return function() {
-    undoListen();
-    undoUnload();
-  };
+	// Undo the listener on unload and provide a way to undo everything
+	var undoUnload = unload(undoListen, window);
+	return function() {
+		undoListen();
+		undoUnload();
+	};
 }
 
 /**
  * Save callbacks to run when unloading. Optionally scope the callback to a
  * container, e.g., window. Provide a way to run all the callbacks.
- *
+ * 
  * @usage unload(): Run all callbacks and release them.
- *
+ * 
  * @usage unload(callback): Add a callback to run on unload.
- * @param [function] callback: 0-parameter function to call on unload.
+ * @param [function]
+ *            callback: 0-parameter function to call on unload.
  * @return [function]: A 0-parameter function that undoes adding the callback.
- *
+ * 
  * @usage unload(callback, container) Add a scoped callback to run on unload.
- * @param [function] callback: 0-parameter function to call on unload.
- * @param [node] container: Remove the callback when this container unloads.
+ * @param [function]
+ *            callback: 0-parameter function to call on unload.
+ * @param [node]
+ *            container: Remove the callback when this container unloads.
  * @return [function]: A 0-parameter function that undoes adding the callback.
  */
 function unload(callback, container) {
@@ -80,7 +84,7 @@ function unload(callback, container) {
 
   // Calling with no arguments runs all the unloader callbacks
   if (callback == null) {
-    unloaders.slice().forEach(function(unloader) unloader());
+    unloaders.slice().forEach(function(unloader) {unloader();});
     unloaders.length = 0;
     return;
   }
@@ -95,15 +99,14 @@ function unload(callback, container) {
     callback = function() {
       container.removeEventListener("unload", removeUnloader, false);
       origCallback();
-    }
+    };
   }
 
   // Wrap the callback in a function that ignores failures
   function unloader() {
     try {
       callback();
-    }
-    catch(ex) {}
+    } catch(ex) {;};
   }
   unloaders.push(unloader);
 
@@ -118,20 +121,21 @@ function unload(callback, container) {
 
 /**
  * Apply a callback to each open and new browser windows.
- *
+ * 
  * @usage watchWindows(callback): Apply a callback to each browser window.
- * @param [function] callback: 1-parameter function that gets a browser window.
+ * @param [function]
+ *            callback: 1-parameter function that gets a browser window.
  */
 function watchWindows(callback) {
   // Wrap the callback in a function that ignores failures
   function watcher(window) {
     try {
       // Now that the window has loaded, only handle browser windows
-      let {documentElement} = window.document;
+      // TODO: test this
+      let documentElement = window.document.documentElement;
       if (documentElement.getAttribute("windowtype") == "navigator:browser")
         callback(window);
-    }
-    catch(ex) {}
+    } catch(ex) {;};
   }
 
   // Wait for the window to finish loading before running the callback
@@ -163,5 +167,7 @@ function watchWindows(callback) {
   Services.ww.registerNotification(windowWatcher);
 
   // Make sure to stop watching for windows if we're unloading
-  unload(function() Services.ww.unregisterNotification(windowWatcher));
+  unload(function() {
+    Services.ww.unregisterNotification(windowWatcher);
+  });
 }
