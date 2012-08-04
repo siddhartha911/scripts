@@ -52,8 +52,8 @@ function initAddonNameAsync(data) {
  *            boolean argument to force logging
  */
 function printToLog(message, forceEnable) {
-	forceEnable = typeof forceEnable !== 'undefined' ? forceEnable : false;
-	if (forceEnable || pref("loggingEnabled")) {
+	forceEnable = (forceEnable == null ? forceEnable : false);
+	if (forceEnable || prefValue("loggingEnabled")) {
 		Services.console.logStringMessage(ADDON_NAME + ": " + message);
 	}
 }
@@ -96,12 +96,12 @@ function unloadSheet(filepath) {
  * changed.
  */
 function loadAndObserve(prefName, fileName) {
-	if (pref(prefName)) {
+	if (prefValue(prefName) == true) {
 		loadSheet(fileName);
 	}
 
-	pref.observe([ prefName ], function() {
-		pref(prefName) ? loadSheet(fileName) : unloadSheet(fileName);
+	prefObserve([ prefName ], function() {
+		prefValue(prefName) ? loadSheet(fileName) : unloadSheet(fileName);
 	});
 
 	unload(function() {
