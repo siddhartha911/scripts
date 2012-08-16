@@ -67,7 +67,7 @@ function prefValue(key) {
 /**
  * Initialize default values of preferences
  */
-function initDefaultPrefs(prefRoot, prefValues) {
+function initDefaultPrefs(prefRoot, prefValues, allowSyncing) {
 	if (prefRoot == null) {
 		if (PREF_ROOT == null)
 			return;
@@ -80,7 +80,11 @@ function initDefaultPrefs(prefRoot, prefValues) {
 		prefValues = PREF_DEFAULTS;
 	}
 
+	allowSyncing = allowSyncing || false;
+
 	var defaultBranch = Services.prefs.getDefaultBranch(prefRoot);
+	var syncBranch = Services.prefs
+			.getDefaultBranch("services.sync.prefs.sync." + prefRoot);
 	for (let[key, val] in Iterator(prefValues)) {
 		switch (typeof val) {
 		case "boolean":
@@ -92,6 +96,10 @@ function initDefaultPrefs(prefRoot, prefValues) {
 		case "string":
 			defaultBranch.setCharPref(key, val);
 			break;
+		}
+
+		if (allowSyncing == true) {
+			syncBranch.setBoolPref(key, true);
 		}
 	}
 }
