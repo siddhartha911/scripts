@@ -52,7 +52,7 @@ function initAddonNameAsync(data) {
  *            boolean argument to force logging
  */
 function printToLog(message, forceEnable) {
-	forceEnable = (forceEnable == null ? forceEnable : false);
+	forceEnable = forceEnable || false;
 	if (forceEnable || prefValue("loggingEnabled")) {
 		Services.console.logStringMessage(ADDON_NAME + ": " + message);
 	}
@@ -72,6 +72,9 @@ function getURIForFile(filepath) {
  * Load the stylesheet located at the relative location filepath
  */
 function loadSheet(filepath) {
+	if (filepath == null)
+		return;
+
 	var uri = getURIForFile(filepath);
 	if (!sss.sheetRegistered(uri, sss.USER_SHEET)) {
 		sss.loadAndRegisterSheet(uri, sss.USER_SHEET);
@@ -83,6 +86,9 @@ function loadSheet(filepath) {
  * Unload the stylesheet located at the relative location filepath
  */
 function unloadSheet(filepath) {
+	if (filepath == null)
+		return;
+
 	var uri = getURIForFile(filepath);
 	if (sss.sheetRegistered(uri, sss.USER_SHEET)) {
 		sss.unregisterSheet(uri, sss.USER_SHEET);
@@ -96,7 +102,7 @@ function unloadSheet(filepath) {
  * changed.
  */
 function loadAndObserve(prefName, fileName) {
-	if (prefValue(prefName) == true) {
+	if (prefValue(prefName) === true) {
 		loadSheet(fileName);
 	}
 

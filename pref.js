@@ -114,12 +114,12 @@ function prefObserve(prefs, callback) {
 
 	function observe(subject, topic, data) {
 		// Sanity check that we have the right notification
-		if (topic != "nsPref:changed")
+		if (topic !== "nsPref:changed")
 			return;
 
 		// Only care about the preferences provided
 		var pref = data.slice(PREF_ROOT.length);
-		if (prefs.indexOf(pref) == -1)
+		if (prefs.indexOf(pref) === -1)
 			return;
 
 		// Trigger the callback with the changed key
