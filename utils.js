@@ -77,46 +77,49 @@ function listen(window, node, event, func, capture) {
  * @return [function]: A 0-parameter function that undoes adding the callback.
  */
 function unload(callback, container) {
-  // Initialize the array of unloaders on the first usage
-  let unloaders = unload.unloaders;
-  if (unloaders == null)
-    unloaders = unload.unloaders = [];
+	// Initialize the array of unloaders on the first usage
+	var unloaders = unload.unloaders;
+	if (unloaders == null)
+		unloaders = unload.unloaders = [];
 
-  // Calling with no arguments runs all the unloader callbacks
-  if (callback == null) {
-    unloaders.slice().forEach(function(unloader) {unloader();});
-    unloaders.length = 0;
-    return;
-  }
+	// Calling with no arguments runs all the unloader callbacks
+	if (callback == null) {
+		unloaders.slice().forEach(function(unloader) {
+			unloader();
+		});
+		unloaders.length = 0;
+		return;
+	}
 
-  // The callback is bound to the lifetime of the container if we have one
-  if (container != null) {
-    // Remove the unloader when the container unloads
-    container.addEventListener("unload", removeUnloader, false);
+	// The callback is bound to the lifetime of the container if we have one
+	if (container != null) {
+		// Remove the unloader when the container unloads
+		container.addEventListener("unload", removeUnloader, false);
 
-    // Wrap the callback to additionally remove the unload listener
-    let origCallback = callback;
-    callback = function() {
-      container.removeEventListener("unload", removeUnloader, false);
-      origCallback();
-    };
-  }
+		// Wrap the callback to additionally remove the unload listener
+		var origCallback = callback;
+		callback = function() {
+			container.removeEventListener("unload", removeUnloader, false);
+			origCallback();
+		};
+	}
 
-  // Wrap the callback in a function that ignores failures
-  function unloader() {
-    try {
-      callback();
-    } catch(ex) {;};
-  }
-  unloaders.push(unloader);
+	// Wrap the callback in a function that ignores failures
+	function unloader() {
+		try {
+			callback();
+		} catch (ex) {
+		}
+	}
+	unloaders.push(unloader);
 
-  // Provide a way to remove the unloader
-  function removeUnloader() {
-    let index = unloaders.indexOf(unloader);
-    if (index != -1)
-      unloaders.splice(index, 1);
-  }
-  return removeUnloader;
+	// Provide a way to remove the unloader
+	function removeUnloader() {
+		var index = unloaders.indexOf(unloader);
+		if (index != -1)
+			unloaders.splice(index, 1);
+	}
+	return removeUnloader;
 }
 
 /**
@@ -127,47 +130,48 @@ function unload(callback, container) {
  *            callback: 1-parameter function that gets a browser window.
  */
 function watchWindows(callback) {
-  // Wrap the callback in a function that ignores failures
-  function watcher(window) {
-    try {
-      // Now that the window has loaded, only handle browser windows
-      // TODO: test this
-      let documentElement = window.document.documentElement;
-      if (documentElement.getAttribute("windowtype") == "navigator:browser")
-        callback(window);
-    } catch(ex) {;};
-  }
+	// Wrap the callback in a function that ignores failures
+	function watcher(window) {
+		try {
+			// Now that the window has loaded, only handle browser windows
+			// TODO: test this
+			var documentElement = window.document.documentElement;
+			if (documentElement.getAttribute("windowtype") == "navigator:browser")
+				callback(window);
+		} catch (ex) {
+		}
+	}
 
-  // Wait for the window to finish loading before running the callback
-  function runOnLoad(window) {
-    // Listen for one load event before checking the window type
-    window.addEventListener("load", function runOnce() {
-      window.removeEventListener("load", runOnce, false);
-      watcher(window);
-    }, false);
-  }
+	// Wait for the window to finish loading before running the callback
+	function runOnLoad(window) {
+		// Listen for one load event before checking the window type
+		window.addEventListener("load", function runOnce() {
+			window.removeEventListener("load", runOnce, false);
+			watcher(window);
+		}, false);
+	}
 
-  // Add functionality to existing windows
-  let windows = Services.wm.getEnumerator(null);
-  while (windows.hasMoreElements()) {
-    // Only run the watcher immediately if the window is completely loaded
-    let window = windows.getNext();
-    if (window.document.readyState == "complete")
-      watcher(window);
-    // Wait for the window to load before continuing
-    else
-      runOnLoad(window);
-  }
+	// Add functionality to existing windows
+	var windows = Services.wm.getEnumerator(null);
+	while (windows.hasMoreElements()) {
+		// Only run the watcher immediately if the window is completely loaded
+		var window = windows.getNext();
+		if (window.document.readyState == "complete")
+			watcher(window);
+		// Wait for the window to load before continuing
+		else
+			runOnLoad(window);
+	}
 
-  // Watch for new browser windows opening then wait for it to load
-  function windowWatcher(subject, topic) {
-    if (topic == "domwindowopened")
-      runOnLoad(subject);
-  }
-  Services.ww.registerNotification(windowWatcher);
+	// Watch for new browser windows opening then wait for it to load
+	function windowWatcher(subject, topic) {
+		if (topic == "domwindowopened")
+			runOnLoad(subject);
+	}
+	Services.ww.registerNotification(windowWatcher);
 
-  // Make sure to stop watching for windows if we're unloading
-  unload(function() {
-    Services.ww.unregisterNotification(windowWatcher);
-  });
+	// Make sure to stop watching for windows if we're unloading
+	unload(function() {
+		Services.ww.unregisterNotification(windowWatcher);
+	});
 }

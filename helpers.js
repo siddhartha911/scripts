@@ -99,15 +99,17 @@ function unloadSheet(filepath) {
 /**
  * Loads fileName if prefName is enabled and remembers to unload when the addon
  * is shutdown. Adds an observer to load/unload fileName when prefName is
- * changed.
+ * changed. Calls callback only when the specified pref changes value.
  */
-function loadAndObserve(prefName, fileName) {
+function loadAndObserve(prefName, fileName, callback) {
 	if (prefValue(prefName) === true) {
 		loadSheet(fileName);
 	}
 
 	prefObserve([ prefName ], function() {
-		prefValue(prefName) ? loadSheet(fileName) : unloadSheet(fileName);
+		var value = prefValue(prefName);
+		value ? loadSheet(fileName) : unloadSheet(fileName);
+		callback();
 	});
 
 	unload(function() {
