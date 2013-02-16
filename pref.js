@@ -98,7 +98,7 @@ function initDefaultPrefs(prefRoot, prefValues, allowSyncing) {
 			break;
 		}
 
-		if (allowSyncing == true && key.indexOf("loggingEnabled") != -1) {
+		if (allowSyncing == true && key.indexOf("loggingEnabled") == -1) {
 			syncBranch.setBoolPref(key, true);
 		}
 	}
