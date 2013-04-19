@@ -100,6 +100,8 @@ function unloadSheet(filepath) {
  * Loads fileName if prefName is enabled and remembers to unload when the addon
  * is shutdown. Adds an observer to load/unload fileName when prefName is
  * changed. Calls callback only when the specified pref changes value.
+ * 
+ * @deprecated Style-sheets should not be loaded/unloaded based on pref values.
  */
 function loadAndObserve(prefName, fileName, callback) {
 	if (prefValue(prefName) === true) {
@@ -114,5 +116,71 @@ function loadAndObserve(prefName, fileName, callback) {
 
 	unload(function() {
 		unloadSheet(fileName);
+	});
+}
+
+function setAttrDoCallback(element, attrName, value, callback) {
+	element.setAttribute(attrName, value);
+	printToLog(attrName + " <- " + value);
+	if (callback) {
+		callback();
+	}
+}
+
+function removeAttrDoCallback(element, attrName, callback) {
+	element.removeAttribute(attrName);
+	printToLog(attrName + " removed.");
+	if (callback) {
+		callback();
+	}
+}
+
+/**
+ * Sets the attribute attrName on the elementId element at the value returned by
+ * getValue(), or the value of obsPref. Keeps the value of attrName in sync with
+ * the value of obsPref. Fires onSet/onRemove when the value of obsPref changes.
+ * 
+ * @param obsPref
+ *            Name of the preference that the attribute will follow.
+ * @param elementId
+ *            Id of the element that the attribute will be set on.
+ * @param attrName
+ *            Name of the attribute that will be set
+ * @param onSet
+ *            Callback to be fired after the attribute is set.
+ * @param onRemove
+ *            Callback to be fired after the attribute is removed.
+ * @param getValue
+ *            Callback to get the value from
+ */
+function loadObsPrefWCallback(obsPref, elementId, attrName, onSet, onRemove,
+		getValue) {
+	if (obsPref == null || elementId == null) {
+		return;
+	}
+
+	if (!attrName || attrName.length === 0) {
+		attrName = obsPref;
+	}
+
+	watchWindows(function(window) {
+		if (!window) {
+			return;
+		}
+
+		var element = window.document.getElementById(elementId);
+		if (element) {
+			var value = getValue ? getValue() : prefValue(obsPref);
+			setAttrDoCallback(element, attrName, value, onSet);
+
+			prefObserve([ obsPref ], function() {
+				value = getValue ? getValue() : prefValue(obsPref);
+				setAttrDoCallback(element, attrName, value, onSet);
+			});
+
+			unload(function() {
+				removeAttrDoCallback(element, attrName, onRemove);
+			});
+		}
 	});
 }
